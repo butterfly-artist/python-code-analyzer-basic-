@@ -1,11 +1,26 @@
-import { AnalysisResult } from '../types/analyzer';
-import { AlertTriangle, CheckCircle, Info, Zap, Shield, Eye, Wrench, Target, Code2, Play, Clock, AlertCircle } from 'lucide-react';
+/**
+ * CodeAnalysisPanel Component
+ * 
+ * A comprehensive UI component that displays Python code analysis results including:
+ * - Code execution output and warnings
+ * - Code quality metrics with visual indicators
+ * - Complexity analysis
+ * - Syntax issues and PEP 8 compliance
+ * - Control flow analysis
+ * - Recommendations for improvement
+ */
 
+import { AnalysisResult } from '../types/analyzer';
+// Import icons for various UI indicators
+import { AlertTriangle, Info, Zap, Shield, Eye, Wrench, Target, Code2, Play, Clock, AlertCircle } from 'lucide-react';
+
+// Component props interface
 interface CodeAnalysisPanelProps {
-  analysis: AnalysisResult | null;
+  analysis: AnalysisResult | null;  // The analysis results to display
 }
 
 export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
+  // Display placeholder when no analysis is available
   if (!analysis) {
     return (
       <div className="card p-6">
@@ -22,6 +37,11 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
     );
   }
 
+  /**
+   * Returns the appropriate icon component based on issue severity
+   * @param severity - The severity level ('error', 'warning', 'info')
+   * @returns A Lucide icon component with appropriate styling
+   */
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'error': return <AlertTriangle className="w-4 h-4 text-red-500" />;
@@ -31,6 +51,11 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
     }
   };
 
+  /**
+   * Returns the appropriate icon for different types of suggestions
+   * @param type - The suggestion type ('optimization', 'security', 'readability', etc.)
+   * @returns A Lucide icon component with appropriate styling
+   */
   const getSuggestionIcon = (type: string) => {
     switch (type) {
       case 'optimization': 
@@ -42,18 +67,33 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
     }
   };
 
+  /**
+   * Determines text color class based on quality score
+   * @param score - Quality score (0-100)
+   * @returns Tailwind CSS text color class
+   */
   const getQualityColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
     if (score >= 60) return 'text-yellow-400';
     return 'text-red-400';
   };
 
+  /**
+   * Determines progress bar color class based on quality score
+   * @param score - Quality score (0-100)
+   * @returns Tailwind CSS background color class
+   */
   const getQualityBarColor = (score: number) => {
     if (score >= 80) return 'bg-green-500';
     if (score >= 60) return 'bg-yellow-500';
     return 'bg-red-500';
   };
 
+  /**
+   * Returns appropriate color classes for different issue types
+   * @param type - Issue type ('pep8', 'security', 'performance', etc.)
+   * @returns Tailwind CSS classes for background, border, and text colors
+   */
   const getIssueTypeColor = (type: string) => {
     switch (type) {
       case 'pep8': return 'bg-blue-900/20 border-blue-500/30 text-blue-300';
@@ -68,6 +108,7 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
   return (
     <div className="space-y-6">
       {/* Code Output Section */}
+      {/* Displays execution status, warnings, and expected output */}
       <div className="card p-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
           <Play className="w-5 h-5 mr-2 text-green-400" />
@@ -122,7 +163,8 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
         </div>
       </div>
 
-      {/* Code Quality Metrics */}
+      {/* Code Quality Metrics Section */}
+      {/* Shows various quality metrics with visual progress bars */}
       <div className="card p-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
           <Target className="w-5 h-5 mr-2 text-primary-400" />
@@ -155,7 +197,8 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
         </div>
       </div>
 
-      {/* Complexity Metrics */}
+      {/* Complexity Metrics Section */}
+      {/* Displays cyclomatic complexity, cognitive complexity, LOC, and nesting depth */}
       <div className="card p-6">
         <h3 className="text-md font-semibold text-white mb-3 flex items-center">
           <Wrench className="w-4 h-4 mr-2 text-orange-400" />
@@ -182,7 +225,8 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
         </div>
       </div>
 
-      {/* Python-Specific Issues */}
+      {/* Python-Specific Issues Section */}
+      {/* Lists syntax issues, PEP 8 violations, and other code problems */}
       {analysis.syntaxIssues.length > 0 && (
         <div className="card p-6">
           <h3 className="text-md font-semibold text-white mb-3 flex items-center">
@@ -211,7 +255,8 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
         </div>
       )}
 
-      {/* Control Flow Analysis */}
+      {/* Control Flow Analysis Section */}
+      {/* Shows conditional branches and loops with potential issues */}
       {(analysis.logicalAnalysis.controlFlow.branches.length > 0 || 
         analysis.logicalAnalysis.controlFlow.loops.length > 0) && (
         <div className="card p-6">
@@ -257,7 +302,8 @@ export function CodeAnalysisPanel({ analysis }: CodeAnalysisPanelProps) {
         </div>
       )}
 
-      {/* Python Suggestions */}
+      {/* Python Recommendations Section */}
+      {/* Displays actionable suggestions for code improvement */}
       {analysis.suggestions.length > 0 && (
         <div className="card p-6">
           <h3 className="text-md font-semibold text-white mb-3 flex items-center">
