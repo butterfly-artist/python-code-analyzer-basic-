@@ -1,20 +1,45 @@
+ /**
+ * Python Code Analysis System
+ * This module provides comprehensive analysis of Python code, including:
+ * - Syntax checking and PEP 8 compliance
+ * - Code quality metrics
+ * - Control flow analysis
+ * - Data flow analysis
+ * - Performance optimization suggestions
+ * - Security vulnerability detection
+ */
+
 import { AnalysisResult, SyntaxIssue, LogicalAnalysis, CodeQuality, Suggestion, ControlFlowAnalysis, DataFlowAnalysis, ComplexityMetrics, BranchInfo, LoopInfo, VariableLifetime, CodeLocation, CodeOutput } from '../types/analyzer';
 
+/**
+ * PythonAnalyzer class
+ * Performs static analysis on Python source code to provide insights and recommendations
+ */
 export class PythonAnalyzer {
-  private code: string;
-  private lines: string[];
+  private code: string;       // The complete Python source code to analyze
+  private lines: string[];    // The code split into individual lines for line-by-line analysis
 
+  /**
+   * Creates a new PythonAnalyzer instance
+   * @param code - The Python source code to analyze
+   */
   constructor(code: string) {
     this.code = code;
     this.lines = code.split('\n');
   }
 
+  /**
+   * Main analysis method that coordinates all analysis tasks
+   * @returns A complete analysis result containing all insights and recommendations
+   * @throws Error if the provided code is not recognized as Python
+   */
   analyze(): AnalysisResult {
-    // Check if code is Python
+    // Verify the code is Python before proceeding
     if (!this.isPythonCode()) {
       throw new Error("I can only analyze Python code.");
     }
 
+    // Perform various analyses and collect results
     const syntaxIssues = this.analyzeSyntax();
     const logicalAnalysis = this.analyzeLogic();
     const codeQuality = this.analyzeQuality();
@@ -32,6 +57,11 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Analyzes potential code output by simulating execution
+   * Handles print statements, expressions, and potential runtime issues
+   * @returns CodeOutput object containing predicted output and execution details
+   */
   private analyzeCodeOutput(): CodeOutput {
     const startTime = performance.now();
     let output = '';
@@ -94,8 +124,12 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Simulates the execution of Python code to predict output
+   * Focuses on print statements and expression evaluation
+   * @returns Predicted output as a string
+   */
   private simulateCodeExecution(): string {
-    let simulatedOutput = '';
     const outputLines: string[] = [];
 
     // Look for print statements and simulate their output
@@ -123,7 +157,7 @@ export class PythonAnalyzer {
         !lastLine.startsWith('for ') && !lastLine.startsWith('while ')) {
       
       // This might be an expression that would output a value
-      const simulatedValue = this.simulateExpressionOutput(lastLine);
+      const simulatedValue = this.simulateExpression(lastLine);
       if (simulatedValue !== null) {
         outputLines.push(simulatedValue);
       }
@@ -132,6 +166,12 @@ export class PythonAnalyzer {
     return outputLines.join('\n');
   }
 
+  /**
+   * Simulates the output of a print statement
+   * @param content - The content inside print()
+   * @param lineIndex - Line number of the print statement
+   * @returns Simulated output or null if simulation not possible
+   */
   private simulatePrintOutput(content: string, lineIndex: number): string | null {
     try {
       // Handle f-strings
@@ -167,12 +207,17 @@ export class PythonAnalyzer {
     }
   }
 
+  /**
+   * Processes and simulates f-string interpolation
+   * @param fstring - The f-string to process
+   * @returns Simulated interpolated string
+   */
   private simulateFString(fstring: string): string {
     // Remove f" or f' prefix and ending quote
     let content = fstring.slice(2, -1);
     
     // Replace simple variable interpolations
-    content = content.replace(/\{(\w+)\}/g, (match, varName) => {
+    content = content.replace(/\{(\w+)\}/g, (_, varName) => {
       return `<${varName}>`;
     });
 
@@ -187,6 +232,11 @@ export class PythonAnalyzer {
     return content;
   }
 
+  /**
+   * Evaluates simple Python expressions
+   * @param expr - The expression to evaluate
+   * @returns Result of the expression or placeholder if can't evaluate
+   */
   private simulateExpression(expr: string): string {
     // Handle simple arithmetic
     const numberPattern = /^\d+(\.\d+)?\s*[+\-*/]\s*\d+(\.\d+)?$/;
@@ -203,6 +253,11 @@ export class PythonAnalyzer {
     return `<${expr}>`;
   }
 
+  /**
+   * Simulates common Python function calls
+   * @param call - The function call to simulate
+   * @returns Expected output of the function call
+   */
   private simulateFunctionCall(call: string): string {
     // Handle common function calls
     if (call.includes('len(')) {
@@ -228,6 +283,12 @@ export class PythonAnalyzer {
     return `<${call}>`;
   }
 
+  /**
+   * Attempts to determine a variable's value by looking at previous assignments
+   * @param varName - The variable name to look up
+   * @param currentLine - The current line number
+   * @returns The variable's value or null if not found
+   */
   private getVariableValue(varName: string, currentLine: number): string | null {
     // Look backwards for variable assignments
     for (let i = currentLine - 1; i >= 0; i--) {
@@ -264,20 +325,11 @@ export class PythonAnalyzer {
     return null;
   }
 
-  private simulateExpressionOutput(expr: string): string | null {
-    // Check if it's a simple expression that would output something
-    if (expr.includes('(') && expr.includes(')') && !expr.includes('=')) {
-      return this.simulateFunctionCall(expr);
-    }
-    
-    // Check if it's a variable reference
-    if (/^\w+$/.test(expr)) {
-      return `<${expr}>`;
-    }
-    
-    return null;
-  }
-
+  /**
+   * Checks if the provided code appears to be Python
+   * Looks for Python-specific keywords, patterns, and syntax
+   * @returns true if code appears to be Python
+   */
   private isPythonCode(): boolean {
     const pythonKeywords = ['def', 'class', 'import', 'from', 'if', 'elif', 'else', 'for', 'while', 'try', 'except', 'with', 'as', 'lambda', 'yield', 'return'];
     const pythonPatterns = [
@@ -297,6 +349,16 @@ export class PythonAnalyzer {
     return hasKeywords || hasPatterns || this.code.includes('python') || this.code.includes('#!/usr/bin/env python');
   }
 
+  /**
+   * Performs detailed syntax analysis
+   * Checks for:
+   * - PEP 8 compliance
+   * - Naming conventions
+   * - Security issues
+   * - Best practices
+   * - Code style
+   * @returns Array of syntax issues found
+   */
   private analyzeSyntax(): SyntaxIssue[] {
     const issues: SyntaxIssue[] = [];
     const variables = new Map<string, { line: number; scope: string; type?: string }>();
@@ -541,6 +603,10 @@ export class PythonAnalyzer {
     return issues;
   }
 
+  /**
+   * Analyzes code logic including control flow and data flow
+   * @returns Comprehensive logical analysis results
+   */
   private analyzeLogic(): LogicalAnalysis {
     const controlFlow = this.analyzeControlFlow();
     const dataFlow = this.analyzeDataFlow();
@@ -553,6 +619,14 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Analyzes control flow including:
+   * - Conditional branches
+   * - Loops
+   * - Unreachable code
+   * - Potential infinite loops
+   * @returns Control flow analysis results
+   */
   private analyzeControlFlow(): ControlFlowAnalysis {
     const branches: BranchInfo[] = [];
     const loops: LoopInfo[] = [];
@@ -634,6 +708,14 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Analyzes data flow including:
+   * - Variable initialization
+   * - Variable usage
+   * - Memory leaks
+   * - Resource management
+   * @returns Data flow analysis results
+   */
   private analyzeDataFlow(): DataFlowAnalysis {
     const uninitializedVariables: string[] = [];
     const unusedVariables: string[] = [];
@@ -696,10 +778,18 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Calculates complexity metrics including:
+   * - Cyclomatic complexity
+   * - Cognitive complexity
+   * - Lines of code
+   * - Maximum nesting depth
+   * @returns Complexity metrics
+   */
   private calculateComplexity(): ComplexityMetrics {
     let cyclomaticComplexity = 1;
     let cognitiveComplexity = 0;
-    let nestingDepth = 0;
+
     let maxNesting = 0;
     const linesOfCode = this.lines.filter(line => line.trim().length > 0 && !line.trim().startsWith('#')).length;
 
@@ -731,6 +821,16 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Analyzes overall code quality
+   * Combines multiple metrics to assess:
+   * - Maintainability
+   * - Readability
+   * - Testability
+   * - Performance
+   * - Security
+   * @returns Code quality metrics
+   */
   private analyzeQuality(): CodeQuality {
     const complexity = this.calculateComplexity();
     const issues = this.analyzeSyntax();
@@ -750,6 +850,11 @@ export class PythonAnalyzer {
     };
   }
 
+  /**
+   * Analyzes code for performance issues
+   * Looks for patterns that might impact performance
+   * @returns Performance score (0-100)
+   */
   private analyzePerformance(): number {
     let score = 100;
     
@@ -772,6 +877,11 @@ export class PythonAnalyzer {
     return Math.max(0, score);
   }
 
+  /**
+   * Analyzes code for security vulnerabilities
+   * Checks for common security issues in Python code
+   * @returns Security score (0-100)
+   */
   private analyzeSecurity(): number {
     let score = 100;
     
@@ -789,6 +899,11 @@ export class PythonAnalyzer {
     return Math.max(0, score);
   }
 
+  /**
+   * Generates actionable suggestions for code improvement
+   * Based on all analysis results
+   * @returns Array of suggestions with examples
+   */
   private generateSuggestions(): Suggestion[] {
     const suggestions: Suggestion[] = [];
     const complexity = this.calculateComplexity();
@@ -846,6 +961,16 @@ export class PythonAnalyzer {
     return suggestions;
   }
 
+  /**
+   * Generates a detailed explanation of the analysis results
+   * Includes summaries of:
+   * - Code structure
+   * - PEP 8 compliance
+   * - Performance analysis
+   * - Security assessment
+   * - Issues and recommendations
+   * @returns Formatted explanation string with markdown-style formatting
+   */
   private generateExplanation(): string {
     const complexity = this.calculateComplexity();
     const issues = this.analyzeSyntax();
@@ -923,19 +1048,32 @@ export class PythonAnalyzer {
   }
 
   // Helper methods for Python-specific analysis
+
+  /**
+   * Extracts condition from Python control statements
+   */
   private extractPythonCondition(line: string, keyword: string): string {
     const match = line.match(new RegExp(`${keyword}\\s+(.+?):`));
     return match ? match[1].trim() : '';
   }
 
+  /**
+   * Checks if a Python condition is always true
+   */
   private isPythonAlwaysTrue(condition: string): boolean {
     return condition === 'True' || condition === '1' || /^\d+$/.test(condition);
   }
 
+  /**
+   * Checks if a Python condition is always false
+   */
   private isPythonAlwaysFalse(condition: string): boolean {
     return condition === 'False' || condition === '0' || condition === 'None' || condition === '[]' || condition === '{}';
   }
 
+  /**
+   * Identifies potential edge cases in conditional logic
+   */
   private findPythonEdgeCases(condition: string): string[] {
     const edgeCases: string[] = [];
     
@@ -955,6 +1093,9 @@ export class PythonAnalyzer {
     return edgeCases;
   }
 
+  /**
+   * Analyzes loops for potential issues
+   */
   private analyzePythonLoopIssues(condition: string, type: string): string[] {
     const issues: string[] = [];
     
