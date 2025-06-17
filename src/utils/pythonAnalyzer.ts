@@ -1,4 +1,4 @@
-import { AnalysisResult, SyntaxIssue, LogicalAnalysis, CodeQuality, Suggestion, ControlFlowAnalysis, DataFlowAnalysis, ComplexityMetrics, BranchInfo, LoopInfo, VariableLifetime, CodeLocation } from '../types/analyzer';
+import { AnalysisResult, SyntaxIssue, LogicalAnalysis, CodeQuality, Suggestion, ControlFlowAnalysis, DataFlowAnalysis, ComplexityMetrics, BranchInfo, LoopInfo, VariableLifetime, CodeLocation, CodeOutput } from '../types/analyzer';
 
 export class PythonAnalyzer {
   private code: string;
@@ -20,14 +20,262 @@ export class PythonAnalyzer {
     const codeQuality = this.analyzeQuality();
     const suggestions = this.generateSuggestions();
     const explanation = this.generateExplanation();
+    const codeOutput = this.analyzeCodeOutput();
 
     return {
       syntaxIssues,
       logicalAnalysis,
       codeQuality,
       suggestions,
-      explanation
+      explanation,
+      codeOutput
     };
+  }
+
+  private analyzeCodeOutput(): CodeOutput {
+    const startTime = performance.now();
+    let output = '';
+    let errors: string[] = [];
+    let warnings: string[] = [];
+    let canExecute = true;
+    let hasOutput = false;
+
+    try {
+      // Check if code has syntax errors that would prevent execution
+      const syntaxIssues = this.analyzeSyntax();
+      const criticalErrors = syntaxIssues.filter(issue => issue.severity === 'error');
+      
+      if (criticalErrors.length > 0) {
+        canExecute = false;
+        errors = criticalErrors.map(error => `Line ${error.line}: ${error.message}`);
+        return {
+          hasOutput: false,
+          output: '',
+          errors,
+          executionTime: 0,
+          canExecute: false,
+          warnings: []
+        };
+      }
+
+      // Simulate code execution and predict output
+      output = this.simulateCodeExecution();
+      hasOutput = output.length > 0;
+
+      // Add warnings for potentially problematic code
+      if (this.code.includes('input(')) {
+        warnings.push('Code contains input() calls - interactive input required');
+      }
+      if (this.code.includes('time.sleep(')) {
+        warnings.push('Code contains sleep() calls - execution may be delayed');
+      }
+      if (this.code.includes('random.')) {
+        warnings.push('Code uses random functions - output may vary between runs');
+      }
+      if (this.code.includes('open(')) {
+        warnings.push('Code performs file operations - ensure files exist');
+      }
+
+    } catch (error) {
+      canExecute = false;
+      errors.push(`Execution error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+
+    return {
+      hasOutput,
+      output,
+      errors,
+      executionTime,
+      canExecute,
+      warnings
+    };
+  }
+
+  private simulateCodeExecution(): string {
+    let simulatedOutput = '';
+    const outputLines: string[] = [];
+
+    // Look for print statements and simulate their output
+    this.lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Handle print statements
+      if (trimmedLine.includes('print(')) {
+        const printMatch = trimmedLine.match(/print\s*\(\s*(.+?)\s*\)/);
+        if (printMatch) {
+          const printContent = printMatch[1];
+          const simulatedValue = this.simulatePrintOutput(printContent, index);
+          if (simulatedValue !== null) {
+            outputLines.push(simulatedValue);
+          }
+        }
+      }
+    });
+
+    // Look for expressions that would produce output
+    const lastLine = this.lines[this.lines.length - 1]?.trim();
+    if (lastLine && !lastLine.startsWith('#') && !lastLine.includes('print(') && 
+        !lastLine.includes('=') && !lastLine.startsWith('def ') && 
+        !lastLine.startsWith('class ') && !lastLine.startsWith('if ') &&
+        !lastLine.startsWith('for ') && !lastLine.startsWith('while ')) {
+      
+      // This might be an expression that would output a value
+      const simulatedValue = this.simulateExpressionOutput(lastLine);
+      if (simulatedValue !== null) {
+        outputLines.push(simulatedValue);
+      }
+    }
+
+    return outputLines.join('\n');
+  }
+
+  private simulatePrintOutput(content: string, lineIndex: number): string | null {
+    try {
+      // Handle f-strings
+      if (content.startsWith('f"') || content.startsWith("f'")) {
+        return this.simulateFString(content);
+      }
+
+      // Handle simple string literals
+      if ((content.startsWith('"') && content.endsWith('"')) || 
+          (content.startsWith("'") && content.endsWith("'"))) {
+        return content.slice(1, -1);
+      }
+
+      // Handle variables and expressions
+      if (content.includes('+') || content.includes('*') || content.includes('/')) {
+        return this.simulateExpression(content);
+      }
+
+      // Handle function calls
+      if (content.includes('(') && content.includes(')')) {
+        return this.simulateFunctionCall(content);
+      }
+
+      // Handle simple variables
+      const variableValue = this.getVariableValue(content, lineIndex);
+      if (variableValue !== null) {
+        return variableValue;
+      }
+
+      return `<${content}>`;
+    } catch {
+      return `<${content}>`;
+    }
+  }
+
+  private simulateFString(fstring: string): string {
+    // Remove f" or f' prefix and ending quote
+    let content = fstring.slice(2, -1);
+    
+    // Replace simple variable interpolations
+    content = content.replace(/\{(\w+)\}/g, (match, varName) => {
+      return `<${varName}>`;
+    });
+
+    // Replace method calls in f-strings
+    content = content.replace(/\{([^}]+)\}/g, (match, expr) => {
+      if (expr.includes('.')) {
+        return `<${expr}>`;
+      }
+      return match;
+    });
+
+    return content;
+  }
+
+  private simulateExpression(expr: string): string {
+    // Handle simple arithmetic
+    const numberPattern = /^\d+(\.\d+)?\s*[+\-*/]\s*\d+(\.\d+)?$/;
+    if (numberPattern.test(expr.trim())) {
+      try {
+        // Simple arithmetic evaluation (safe)
+        const result = Function(`"use strict"; return (${expr})`)();
+        return result.toString();
+      } catch {
+        return `<${expr}>`;
+      }
+    }
+
+    return `<${expr}>`;
+  }
+
+  private simulateFunctionCall(call: string): string {
+    // Handle common function calls
+    if (call.includes('len(')) {
+      return '<length>';
+    }
+    if (call.includes('str(')) {
+      return '<string>';
+    }
+    if (call.includes('int(')) {
+      return '<integer>';
+    }
+    if (call.includes('range(')) {
+      const rangeMatch = call.match(/range\((\d+)\)/);
+      if (rangeMatch) {
+        const num = parseInt(rangeMatch[1]);
+        if (num <= 10) {
+          return `range(0, ${num})`;
+        }
+      }
+      return '<range object>';
+    }
+
+    return `<${call}>`;
+  }
+
+  private getVariableValue(varName: string, currentLine: number): string | null {
+    // Look backwards for variable assignments
+    for (let i = currentLine - 1; i >= 0; i--) {
+      const line = this.lines[i].trim();
+      const assignment = line.match(new RegExp(`^${varName}\\s*=\\s*(.+)`));
+      if (assignment) {
+        const value = assignment[1];
+        
+        // Handle string literals
+        if ((value.startsWith('"') && value.endsWith('"')) || 
+            (value.startsWith("'") && value.endsWith("'"))) {
+          return value.slice(1, -1);
+        }
+        
+        // Handle numbers
+        if (/^\d+(\.\d+)?$/.test(value)) {
+          return value;
+        }
+        
+        // Handle lists
+        if (value.startsWith('[') && value.endsWith(']')) {
+          return value;
+        }
+        
+        // Handle dictionaries
+        if (value.startsWith('{') && value.endsWith('}')) {
+          return value;
+        }
+        
+        return `<${value}>`;
+      }
+    }
+    
+    return null;
+  }
+
+  private simulateExpressionOutput(expr: string): string | null {
+    // Check if it's a simple expression that would output something
+    if (expr.includes('(') && expr.includes(')') && !expr.includes('=')) {
+      return this.simulateFunctionCall(expr);
+    }
+    
+    // Check if it's a variable reference
+    if (/^\w+$/.test(expr)) {
+      return `<${expr}>`;
+    }
+    
+    return null;
   }
 
   private isPythonCode(): boolean {
@@ -575,7 +823,7 @@ export class PythonAnalyzer {
       if (trimmedLine.includes('range(len(')) {
         suggestions.push({
           line: index + 1,
-          type: 'performance',
+          type: "optimization",
           priority: 'medium',
           title: 'Use enumerate() instead of range(len())',
           description: 'enumerate() is more Pythonic and efficient.',

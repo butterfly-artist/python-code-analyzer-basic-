@@ -14,6 +14,16 @@ export interface AnalysisResult {
   codeQuality: CodeQuality;
   suggestions: Suggestion[];
   explanation: string;
+  codeOutput: CodeOutput;
+}
+
+export interface CodeOutput {
+  hasOutput: boolean;
+  output: string;
+  errors: string[];
+  executionTime: number;
+  canExecute: boolean;
+  warnings: string[];
 }
 
 export interface SyntaxIssue {
