@@ -1,5 +1,34 @@
+/**
+ * pythonSamples.ts
+ *
+ * This file contains a curated collection of Python code samples for use in code analysis, tutorials, and demonstrations.
+ * Each sample includes:
+ *   - A unique id
+ *   - Title and description
+ *   - The actual Python code as a string
+ *   - The language, difficulty, and key concepts covered
+ *
+ * The samples cover a wide range of Python topics, from beginner to advanced, including:
+ *   - Basic syntax and printing
+ *   - Variables and data types
+ *   - Control flow (if/else, loops)
+ *   - Functions and parameters
+ *   - List/dictionary/set comprehensions
+ *   - Exception handling
+ *   - Object-oriented programming
+ *   - File operations
+ *   - Decorators
+ *   - Generators and iterators
+ *   - Context managers
+ *   - Async programming
+ *   - Data analysis
+ *
+ * The file also exports a utility function to get a random sample.
+ */
+
 import { CodeSample } from '../types/analyzer';
 
+// Array of Python code samples, each with metadata and code string
 export const PYTHON_SAMPLES: CodeSample[] = [
   {
     id: 'hello-world',
@@ -1114,6 +1143,10 @@ if __name__ == "__main__":
   }
 ];
 
+/**
+ * Returns a random Python code sample from the collection.
+ * Useful for demo, testing, or random exploration features.
+ */
 export function getRandomPythonSample(): CodeSample {
   const randomIndex = Math.floor(Math.random() * PYTHON_SAMPLES.length);
   return PYTHON_SAMPLES[randomIndex];
