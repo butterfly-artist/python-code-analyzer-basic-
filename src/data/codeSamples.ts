@@ -1,6 +1,45 @@
+/**
+ * codeSamples.ts
+ * 
+ * This file contains a comprehensive collection of programming code samples
+ * primarily focused on C programming language fundamentals and algorithms.
+ * These samples are used for code analysis, learning, and demonstration purposes.
+ * 
+ * Each code sample is structured with:
+ * - id: Unique identifier for the sample
+ * - title: Descriptive name of the program
+ * - description: Brief explanation of what the code demonstrates
+ * - language: Programming language (currently 'c')
+ * - difficulty: Skill level required ('beginner', 'intermediate', 'advanced')
+ * - concepts: Array of programming concepts demonstrated
+ * - code: The actual source code as a string
+ * 
+ * The samples cover various programming concepts including:
+ * - Basic syntax and I/O operations
+ * - Control structures (if/else, loops, switch)
+ * - Functions and recursion
+ * - Arrays and strings
+ * - Pointers and memory management
+ * - Data structures (linked lists, arrays)
+ * - Algorithms (sorting, searching)
+ * - Mathematical operations
+ * 
+ * This collection is particularly useful for:
+ * - Learning C programming fundamentals
+ * - Understanding common algorithms and data structures
+ * - Practicing code analysis and debugging
+ * - Demonstrating different programming concepts
+ */
+
 import { CodeSample } from '../types/analyzer';
 
+/**
+ * Collection of code samples with metadata and implementations.
+ * Each sample demonstrates specific programming concepts and techniques.
+ * The samples are organized from basic to advanced topics.
+ */
 export const CODE_SAMPLES: CodeSample[] = [
+  // Basic Concepts
   {
     id: 'hello-world',
     title: 'Hello World',
