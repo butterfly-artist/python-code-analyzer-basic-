@@ -1,69 +1,105 @@
+/**
+ * index.css
+ * 
+ * Main stylesheet for the Python Code Analysis application
+ * Built with Tailwind CSS using a custom dark theme
+ * 
+ * Structure:
+ * 1. Tailwind Directives - Base framework imports
+ * 2. Base Layer - Global styles and resets
+ * 3. Components Layer - Reusable UI components
+ * 4. Custom Scrollbar - Browser-specific scrollbar styling
+ */
+
+/* Tailwind CSS Framework Base Imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Base Layer: Global Styles
+ * Defines basic styling for HTML elements and
+ * sets up the dark theme color scheme
+ */
 @layer base {
   * {
-    @apply border-dark-700;
+    @apply border-dark-700;  /* Default border color for all elements */
   }
   
   body {
-    @apply bg-dark-900 text-white font-sans;
+    @apply bg-dark-900 text-white font-sans;  /* Dark theme background and text */
   }
 }
 
+/* Components Layer: Reusable UI Elements
+ * Defines custom component classes using Tailwind utilities
+ */
 @layer components {
+  /* Card Component
+   * Used for containing content in a visually distinct box
+   */
   .card {
     @apply bg-dark-800 rounded-xl border border-dark-700 shadow-lg;
   }
   
+  /* Primary Button
+   * Main call-to-action buttons with brand color
+   */
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium;
   }
   
+  /* Secondary Button
+   * Alternative button style for less prominent actions
+   */
   .btn-secondary {
     @apply bg-dark-700 hover:bg-dark-600 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium border border-dark-600;
   }
   
+  /* Syntax Highlighting Tokens
+   * Color scheme for code syntax highlighting
+   */
   .token-keyword {
-    @apply text-purple-400 font-semibold;
+    @apply text-purple-400 font-semibold;  /* Language keywords */
   }
   
   .token-identifier {
-    @apply text-blue-300;
+    @apply text-blue-300;  /* Variable and function names */
   }
   
   .token-operator {
-    @apply text-orange-400;
+    @apply text-orange-400;  /* Operators and symbols */
   }
   
   .token-literal {
-    @apply text-green-400;
+    @apply text-green-400;  /* String and number literals */
   }
   
   .token-delimiter {
-    @apply text-gray-400;
+    @apply text-gray-400;  /* Brackets, parentheses, etc. */
   }
   
   .token-comment {
-    @apply text-gray-500 italic;
+    @apply text-gray-500 italic;  /* Code comments */
   }
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbar Styling
+ * Webkit-specific scrollbar customization for better UX
+ * Matches the dark theme of the application
+ */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 8px;  /* Scrollbar width */
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #1e293b;  /* Scrollbar track color */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
+  background: #475569;  /* Scrollbar handle color */
+  border-radius: 4px;  /* Rounded corners */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #64748b;  /* Scrollbar handle hover color */
 }
